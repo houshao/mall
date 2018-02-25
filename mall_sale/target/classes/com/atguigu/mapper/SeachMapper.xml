@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+	<mapper namespace="com.atguigu.mapper.SeachMapper" >
+	<insert id="insert_attr" useGeneratedKeys="true"
+	 keyColumn="id" keyProperty="attr.id" parameterType="com.atguigu.bean.T_MALL_ATTR_VALUE" >
+		insert into T_MALL_ATTR(
+		shxm_mch,
+		shfqy,
+		flbh2
+		)values(
+		#{attr.shxm_mch},
+		#{attr.shfqy},
+		#{class2id}
+		)
+	</insert>
+	
+	<insert id="insert_value" parameterType="com.atguigu.bean.T_MALL_VALUE" >
+		
+		insert into T_MALL_VALUE(
+		shxzh,
+		shxm_id,
+		shxzh_mch
+		)
+		values
+		<foreach collection="list_value" item="val" separator="," >
+		(
+		#{val.shxzh},
+		#{attr_id},
+		#{val.shxzh_mch}
+		)
+		</foreach>
+	</insert>
+	 
+	<select id="selectAttr" resultMap="selectAttrMap" parameterType="Integer">
+		select ma.id as ma_id, mv.id as mv_id,ma.*,mv.*
+		from T_MALL_ATTR ma , T_MALL_VALUE mv 
+		where ma.id = mv.shxm_id and  ma.flbh2 = #{id}
+	</select>
+	
+	<resultMap type="com.atguigu.bean.T_MALL_ATTR_VALUE" id="selectAttrMap" autoMapping="true">
+		<result column="ma_id"  property="id" />
+		<collection property="list_value" ofType="com.atguigu.bean.T_MALL_VALUE" autoMapping="true">
+			<result column="mv_id" property="id"/>
+		</collection>
+	</resultMap>
+	
+	
+	<select id="selectSkuList" resultMap="selectSku" parameterType="Integer">
+		SELECT sku.id sku_id,spu.id spu_id,img.id img_id,mark.id mark_id ,sku.*,spu.*,img.*,mark.* from t_mall_sku sku
+		INNER JOIN t_mall_product spu
+		on sku.shp_id=spu.Id
+		INNER JOIN t_mall_product_image img
+		on img.shp_id = spu.Id
+		INNER JOIN t_mall_trade_mark mark 
+		on mark.Id = spu.pp_id
+		where spu.flbh2 = #{id}
+	</select>
+	<resultMap id="selectSku" type="com.atguigu.bean.T_MALL_OBJECT_SKU_MARK_PRODUCT_IMG"  autoMapping="true">
+		<result column="sku_id" property="id"/>
+		<association javaType="com.atguigu.bean.T_MALL_PRODUCT" property="product" autoMapping="true" >
+			<result column="spu_id" property="id" />
+		</association>
+		<association javaType="com.atguigu.bean.T_MALL_PRODUCT_IMAGE" property="image" autoMapping="true" >
+			<result column="img_id" property="id" />
+		</association>
+		<association javaType="com.atguigu.bean.T_MALL_TRADE_MARK" property="mark" autoMapping="true" >
+			<result column="mark_id" property="id" />
+		</association>
+	</resultMap>
+	
+	<select id="selectSkuAttrList" resultMap="selectSku" parameterType="Map">
+		select sku.id as sku_id,spu.id spu_id,tm.id
+		tm_id,sku.*,spu.*,tm.* from
+		t_mall_sku sku,
+		t_mall_product spu ,
+		t_mall_trade_mark
+		tm ,
+		t_mall_tm_class tc
+		where
+		sku.shp_id = spu.Id AND
+		spu.flbh1 = tc.flbh1
+		and
+		tc.pp_id = tm.Id and spu.pp_id = tm.Id and
+		spu.flbh2 = #{class2id}
+		${sql}
+	</select>
+
+	
+	</mapper>
